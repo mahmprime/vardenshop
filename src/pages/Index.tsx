@@ -3,7 +3,6 @@ import ProductCard from "@/components/ProductCard";
 import Footer from "@/components/Footer";
 import { Star, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
-import { shopifyClient } from "@/lib/shopify"; // Importuj klijent koji smo napravili
 import backgroundImage from "@/assets/unnamed.png";
 
 const reviews = [
@@ -42,16 +41,70 @@ const faqs = [
   },
 ];
 
+const SHOP_DOMAIN = "varden-8392.myshopify.com";
+const STOREFRONT_TOKEN = "d8da9b08c9a73daa4688cd45796981a9";
+
 const Index = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [shopifyProducts, setShopifyProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Povlačenje proizvoda sa Shopify-a
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const products = await shopifyClient.product.fetchAll();
+        const query = `
+          {
+            products(first: 12) {
+              edges {
+                node {
+                  id
+                  title
+                  productType
+                  images(first: 1) {
+                    edges {
+                      node {
+                        url
+                      }
+                    }
+                  }
+                  variants(first: 1) {
+                    edges {
+                      node {
+                        id
+                        price {
+                          amount
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `;
+
+        const response = await fetch(
+          `https://${SHOP_DOMAIN}/api/2026-01/graphql.json`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Shopify-Storefront-Access-Token": STOREFRONT_TOKEN,
+            },
+            body: JSON.stringify({ query }),
+          }
+        );
+
+        const json = await response.json();
+
+        const products = json.data.products.edges.map((edge: any) => ({
+          id: edge.node.id,
+          title: edge.node.title,
+          productType: edge.node.productType,
+          image: edge.node.images.edges[0]?.node.url,
+          price: edge.node.variants.edges[0]?.node.price.amount,
+        }));
+
         setShopifyProducts(products);
       } catch (error) {
         console.error("Greška pri učitavanju Shopify proizvoda:", error);
@@ -72,7 +125,7 @@ const Index = () => {
       >
         <div className="absolute inset-0 bg-black opacity-60"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background"></div>
-        
+
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -109,18 +162,16 @@ const Index = () => {
         ) : (
           <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3">
             {shopifyProducts.map((product, i) => (
-              <ProductCard 
-                key={product.id} 
+              <ProductCard
+                key={product.id}
                 product={{
                   id: product.id,
                   name: product.title,
-                  // Shopify vraća cijenu kao string unutar prve varijante
-                  price: parseFloat(product.variants[0].price.amount),
-                  // Uzimamo prvu sliku iz niza
-                  image: product.images[0]?.src || "/placeholder.jpg",
-                  category: product.productType || "Survival Gear"
-                }} 
-                index={i} 
+                  price: parseFloat(product.price),
+                  image: product.image || "/placeholder.jpg",
+                  category: product.productType || "Survival Gear",
+                }}
+                index={i}
               />
             ))}
           </div>
@@ -182,8 +233,12 @@ const Index = () => {
                 "{review.text}"
               </p>
               <div className="mt-6">
-                <p className="text-xs font-medium text-foreground">{review.name}</p>
-                <p className="text-[10px] text-muted-foreground">{review.role}</p>
+                <p className="text-xs font-medium text-foreground">
+                  {review.name}
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {review.role}
+                </p>
               </div>
             </motion.div>
           ))}
@@ -211,9 +266,13 @@ const Index = () => {
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 className="flex w-full items-center justify-between py-5 text-left"
               >
-                <span className="text-sm font-medium text-foreground pr-4">{faq.q}</span>
+                <span className="text-sm font-medium text-foreground pr-4">
+                  {faq.q}
+                </span>
                 <ChevronDown
-                  className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-300 ${openFaq === i ? "rotate-180" : ""}`}
+                  className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-300 ${
+                    openFaq === i ? "rotate-180" : ""
+                  }`}
                   strokeWidth={1.5}
                 />
               </button>
@@ -224,7 +283,9 @@ const Index = () => {
                   transition={{ duration: 0.3 }}
                   className="pb-5"
                 >
-                  <p className="text-sm leading-relaxed text-muted-foreground">{faq.a}</p>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {faq.a}
+                  </p>
                 </motion.div>
               )}
             </motion.div>
