@@ -41,9 +41,6 @@ const faqs = [
   },
 ];
 
-const SHOP_DOMAIN = "varden-8392.myshopify.com";
-const STOREFRONT_TOKEN = "d8da9b08c9a73daa4688cd45796981a9";
-
 const Index = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [shopifyProducts, setShopifyProducts] = useState<any[]>([]);
@@ -51,58 +48,17 @@ const Index = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true);
       try {
-        const query = `
-          {
-            products(first: 12) {
-              edges {
-                node {
-                  id
-                  title
-                  productType
-                  images(first: 1) {
-                    edges {
-                      node {
-                        url
-                      }
-                    }
-                  }
-                  variants(first: 1) {
-                    edges {
-                      node {
-                        id
-                        price {
-                          amount
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        `;
-
-        const response = await fetch(
-          `https://${SHOP_DOMAIN}/api/2026-01/graphql.json`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Shopify-Storefront-Access-Token": STOREFRONT_TOKEN,
-            },
-            body: JSON.stringify({ query }),
-          }
-        );
-
+        const response = await fetch("/api/shopify");
         const json = await response.json();
 
         const products = json.data.products.edges.map((edge: any) => ({
           id: edge.node.id,
           title: edge.node.title,
           productType: edge.node.productType,
-          image: edge.node.images.edges[0]?.node.url,
-          price: edge.node.variants.edges[0]?.node.price.amount,
+          image: edge.node.images.edges[0]?.node.src || "/placeholder.jpg",
+          price: edge.node.variants.edges[0]?.node.price.amount || "0",
         }));
 
         setShopifyProducts(products);
@@ -168,7 +124,7 @@ const Index = () => {
                   id: product.id,
                   name: product.title,
                   price: parseFloat(product.price),
-                  image: product.image || "/placeholder.jpg",
+                  image: product.image,
                   category: product.productType || "Survival Gear",
                 }}
                 index={i}
