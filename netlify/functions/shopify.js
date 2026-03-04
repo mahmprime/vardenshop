@@ -28,16 +28,33 @@ export const handler: Handler = async (event, context) => {
       body: JSON.stringify({ query }),
     })
 
+    if (!response.ok) {
+      // Shopify API nije vratio 200
+      const text = await response.text()
+      return {
+        statusCode: response.status,
+        body: JSON.stringify({ error: `Shopify API error: ${text}` }),
+      }
+    }
+
     const data = await response.json()
+
+    // Provjera da li data.products postoji
+    if (!data || !data.data || !data.data.products) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "No products returned from Shopify API" }),
+      }
+    }
 
     return {
       statusCode: 200,
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     }
   } catch (err) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: String(err) })
+      body: JSON.stringify({ error: String(err) }),
     }
   }
 }
