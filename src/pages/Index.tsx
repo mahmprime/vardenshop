@@ -46,18 +46,18 @@ const Index = () => {
   const [shopifyProducts, setShopifyProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+    useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const response = await fetch("/api/shopify");
+        const response = await fetch("/.netlify/functions/shopify");
         const json = await response.json();
 
         const products = json.data.products.edges.map((edge: any) => ({
           id: edge.node.id,
           title: edge.node.title,
           productType: edge.node.productType,
-          image: edge.node.images.edges[0]?.node.src || "/placeholder.jpg",
+          image: edge.node.images.edges[0]?.node.url || "/placeholder.jpg",
           price: edge.node.variants.edges[0]?.node.price.amount || "0",
         }));
 

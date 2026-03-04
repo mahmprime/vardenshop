@@ -1,6 +1,6 @@
 [build]
-  command = "npx netlify-next build"
-  publish = "out"           # Netlify će znati gde je build
+  command = "npm run build"
+  publish = "dist"
   functions = "netlify/functions"
 
 [[redirects]]
