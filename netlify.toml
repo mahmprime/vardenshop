@@ -1,9 +1,8 @@
 [build]
-  command = "npm run build"
-  publish = ".next"
+  command = "npx netlify-next build"
+  publish = "out"           # Netlify će znati gde je build
   functions = "netlify/functions"
 
-# Redirect za funkcije
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
