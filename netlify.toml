@@ -1,7 +1,9 @@
 [build]
-  publish = "build"
+  command = "npm run build"
+  publish = ".next"
   functions = "netlify/functions"
 
+# Redirect za funkcije
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
