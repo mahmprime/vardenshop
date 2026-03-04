@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
 import ProductCard from "@/components/ProductCard";
-import { products } from "@/data/products";
 import Footer from "@/components/Footer";
 import { Star, ChevronDown } from "lucide-react";
-import { useState } from "react";
-import backgroundImage from "@/assets/unnamed.png"; // Import pozadinske slike
+import { useState, useEffect } from "react";
+import { shopifyClient } from "@/lib/shopify"; // Importuj klijent koji smo napravili
+import backgroundImage from "@/assets/unnamed.png";
 
 const reviews = [
   {
@@ -38,20 +38,30 @@ const faqs = [
   },
   {
     q: "Are your products field-tested?",
-    a: "Every product undergoes 2,000+ hours of field testing across extreme environments — from arctic tundra to desert heat — before release.",
-  },
-  {
-    q: "Do you offer returns?",
-    a: "Yes. We offer a 60-day no-questions-asked return policy. If a VARDEN product doesn't meet your expectations, send it back for a full refund.",
-  },
-  {
-    q: "Can the Solar Fold charge in cloudy conditions?",
-    a: "Yes. The SunPower monocrystalline cells are optimized for both direct and diffused light, maintaining up to 70% efficiency under overcast skies.",
+    a: "Every product undergoes 2,000+ hours of field testing across extreme environments.",
   },
 ];
 
 const Index = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [shopifyProducts, setShopifyProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Povlačenje proizvoda sa Shopify-a
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const products = await shopifyClient.product.fetchAll();
+        setShopifyProducts(products);
+      } catch (error) {
+        console.error("Greška pri učitavanju Shopify proizvoda:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   return (
     <div className="min-h-screen pt-16">
@@ -60,10 +70,7 @@ const Index = () => {
         className="relative flex flex-col items-center justify-center px-6 py-48 text-center bg-cover bg-center"
         style={{ backgroundImage: `url(${backgroundImage})` }}
       >
-        {/* Overlay preko slike za tamniji izgled */}
         <div className="absolute inset-0 bg-black opacity-60"></div>
-
-        {/* GRADIENT FADE OUT - Ovo rešava prelaz na dnu */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background"></div>
         
         <motion.p
@@ -84,15 +91,6 @@ const Index = () => {
           <br />
           the <span className="text-[hsl(var(--copper))]">Unforgiving</span>
         </motion.h1>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="relative mt-8 max-w-lg text-sm leading-relaxed text-muted-foreground z-10"
-        >
-          Every VARDEN product is precision-crafted from aerospace-grade materials.
-          Built to perform when failure is not an option.
-        </motion.p>
       </section>
 
       {/* Product Grid */}
@@ -103,11 +101,30 @@ const Index = () => {
             The Collection
           </p>
         </div>
-        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product, i) => (
-            <ProductCard key={product.id} product={product} index={i} />
-          ))}
-        </div>
+
+        {loading ? (
+          <div className="text-center py-20 text-muted-foreground animate-pulse uppercase tracking-widest text-xs">
+            Loading Gear...
+          </div>
+        ) : (
+          <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3">
+            {shopifyProducts.map((product, i) => (
+              <ProductCard 
+                key={product.id} 
+                product={{
+                  id: product.id,
+                  name: product.title,
+                  // Shopify vraća cijenu kao string unutar prve varijante
+                  price: parseFloat(product.variants[0].price.amount),
+                  // Uzimamo prvu sliku iz niza
+                  image: product.images[0]?.src || "/placeholder.jpg",
+                  category: product.productType || "Survival Gear"
+                }} 
+                index={i} 
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Video Section */}
@@ -133,9 +150,6 @@ const Index = () => {
             className="h-full w-full"
           />
         </motion.div>
-        <p className="mt-6 max-w-lg text-sm leading-relaxed text-muted-foreground">
-          Watch our gear endure the harshest conditions on Earth. From the Arctic Circle to the Sahara — VARDEN performs where others fail.
-        </p>
       </section>
 
       {/* Reviews Section */}
@@ -218,7 +232,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer */}
       <Footer />
     </div>
   );
