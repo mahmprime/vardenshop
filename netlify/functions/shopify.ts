@@ -14,26 +14,26 @@ export const handler: Handler = async () => {
   }
 
   const query = `
-  {
-    products(first: 12) {
-      edges {
-        node {
-          id
-          title
-          productType
-          images(first: 1) {
-            edges {
-              node {
-                url
-              }
+{
+  products(first: 12) {
+    edges {
+      node {
+        id
+        title
+        productType
+        images(first: 1) {
+          edges {
+            node {
+              url
             }
           }
-          variants(first: 1) {
-            edges {
-              node {
-                price {
-                  amount
-                }
+        }
+        variants(first: 1) {
+          edges {
+            node {
+              id          # ovo je ID varijante
+              price {
+                amount
               }
             }
           }
@@ -41,7 +41,8 @@ export const handler: Handler = async () => {
       }
     }
   }
-  `
+}
+`
 
   try {
 

@@ -55,14 +55,17 @@ const Index = () => {
 
         console.log("Shopify response:", json);
 
-        const products = json.data.products.edges.map((edge: any) => ({
+        const products = json.data.products.edges.map((edge: any) => {
+        const variantNode = edge.node.variants.edges[0]?.node;
+        return {
           id: edge.node.id,
           title: edge.node.title,
           productType: edge.node.productType,
           image: edge.node.images.edges[0]?.node.url || "/placeholder.jpg",
-          price: parseFloat(edge.node.variants.edges[0]?.node.price.amount || "0"),
-          variantId: edge.node.variants.edges[0]?.node.id.split("/").pop() // ovo je ključ
-        }));
+          price: variantNode ? parseFloat(variantNode.price.amount || "0") : 0,
+          variantId: variantNode ? variantNode.id.split("/").pop() : null
+        };
+      }).filter(p => p.variantId !== null); // uklanja proizvode bez varijante
 
         setShopifyProducts(products);
       } catch (error) {

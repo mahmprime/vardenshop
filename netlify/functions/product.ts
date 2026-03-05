@@ -16,31 +16,32 @@ export const handler: Handler = async (event) => {
 
   // Shopify Storefront API očekuje ID u formatu "gid://shopify/Product/<num>"
   const query = `
-    {
-      product(id: "${id}") {
-        id
-        title
-        productType
-        description
-        images(first: 5) {
-          edges {
-            node {
-              url
-            }
-          }
+{
+  product(id: "${id}") {
+    id
+    title
+    productType
+    description
+    images(first: 5) {
+      edges {
+        node {
+          url
         }
-        variants(first: 1) {
-          edges {
-            node {
-              price {
-                amount
-              }
-            }
+      }
+    }
+    variants(first: 1) {
+      edges {
+        node {
+          id        # ovo je ključ za frontend / checkout
+          price {
+            amount
           }
         }
       }
     }
-  `
+  }
+}
+`
 
   try {
     const res = await fetch(`https://${SHOP}/api/2026-01/graphql.json`, {
