@@ -2,14 +2,15 @@ import { X, Minus, Plus } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { AnimatePresence, motion } from "framer-motion";
 
-// Funkcija za generisanje Shopify cart URL-a
+// Primjer: "gid://shopify/Product/7469572980807" -> "7469572980807"
 const getShopifyCheckoutUrl = (items: { product: any; quantity: number }[]) => {
-  // Zamijeni sa svojim Shopify domenom
   const domain = "varden-8392.myshopify.com";
 
-  // format: /cart/{variantId}:{quantity},{variantId2}:{quantity2}
   const cartItems = items
-    .map((item) => `${item.product.id}:${item.quantity}`)
+    .map((item) => {
+      const numericId = item.product.id.split("/").pop(); // izvlači zadnji dio
+      return `${numericId}:${item.quantity}`;
+    })
     .join(",");
 
   return `https://${domain}/cart/${cartItems}`;

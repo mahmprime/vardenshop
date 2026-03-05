@@ -26,15 +26,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const openCart = useCallback(() => setIsOpen(true), []);
   const closeCart = useCallback(() => setIsOpen(false), []);
-//sdwadwa
-  const addItem = useCallback((product: Product) => {
-    if (!product.variantId) return;
 
+  const addItem = useCallback((product: Product) => {
     setItems(prev => {
-      const existing = prev.find(i => i.product.variantId === product.variantId);
+      const existing = prev.find(i => i.product.id === product.id);
       if (existing) {
         return prev.map(i =>
-          i.product.variantId === product.variantId
+          i.product.id === product.id
             ? { ...i, quantity: i.quantity + 1 }
             : i
         );
@@ -45,17 +43,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsOpen(true);
   }, []);
 
-  const removeItem = useCallback((variantId: string) => {
-    setItems(prev => prev.filter(i => i.product.variantId !== variantId));
+  const removeItem = useCallback((productId: string) => {
+    setItems(prev => prev.filter(i => i.product.id !== productId));
   }, []);
 
-  const updateQuantity = useCallback((variantId: string, quantity: number) => {
+  const updateQuantity = useCallback((productId: string, quantity: number) => {
     if (quantity <= 0) {
-      setItems(prev => prev.filter(i => i.product.variantId !== variantId));
+      setItems(prev => prev.filter(i => i.product.id !== productId));
     } else {
       setItems(prev =>
         prev.map(i =>
-          i.product.variantId === variantId ? { ...i, quantity } : i
+          i.product.id === productId ? { ...i, quantity } : i
         )
       );
     }
