@@ -18,7 +18,7 @@ const Checkout = () => {
       </div>
     );
   }
-
+//sdas
   const tax = subtotal * 0.08;
   const total = subtotal + tax;
 
