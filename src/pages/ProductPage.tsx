@@ -1,21 +1,89 @@
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { products } from "@/data/products";
-import { useCart } from "@/context/CartContext";
 import { motion } from "framer-motion";
+import { useCart } from "@/context/CartContext";
 import { Shield, ChevronDown } from "lucide-react";
-import { useState } from "react";
+
+interface ProductSpec {
+  label: string;
+  value: string;
+}
+
+interface ShopifyProduct {
+  id: string;
+  title: string;
+  productType: string;
+  description?: string;
+  images: string[];
+  price: number;
+  specs?: ProductSpec[];
+}
 
 const ProductPage = () => {
   const { id } = useParams<{ id: string }>();
-  const product = products.find((p) => p.id === id);
-  const { addItem } = useCart();
+  const [product, setProduct] = useState<ShopifyProduct | null>(null);
+  const [loading, setLoading] = useState(true);
   const [specsOpen, setSpecsOpen] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
 
+  const { addItem } = useCart();
+
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchProduct = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch("/api/shopify");
+        const json = await response.json();
+
+        // Nađi proizvod po id
+        const edge = json.data.products.edges.find(
+          (e: any) => encodeURIComponent(e.node.id) === id
+        );
+
+        if (!edge) {
+          setProduct(null);
+          return;
+        }
+
+        const node = edge.node;
+        const shopifyProduct: ShopifyProduct = {
+          id: node.id,
+          title: node.title,
+          productType: node.productType,
+          description: node.description || "",
+          images: node.images.edges.map((imgEdge: any) => imgEdge.node.url),
+          price: parseFloat(node.variants.edges[0]?.node.price.amount || "0"),
+          specs: node.metafields?.edges?.map((m: any) => ({
+            label: m.node.key,
+            value: m.node.value,
+          })),
+        };
+
+        setProduct(shopifyProduct);
+      } catch (error) {
+        console.error("Greška pri fetchovanju proizvoda:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center pt-16 text-muted-foreground">
+        Loading product...
+      </div>
+    );
+  }
+
   if (!product) {
     return (
-      <div className="flex min-h-screen items-center justify-center pt-16">
-        <p className="text-muted-foreground">Product not found.</p>
+      <div className="flex min-h-screen items-center justify-center pt-16 text-muted-foreground">
+        Product not found.
       </div>
     );
   }
@@ -41,8 +109,8 @@ const ProductPage = () => {
             <div className="aspect-square overflow-hidden border border-border bg-card shadow-[var(--shadow-copper)]">
               <img
                 src={product.images[activeImage]}
-                alt={product.name}
-                className="h-full w-full object-cover transition-opacity duration-500"
+                alt={product.title}
+                className="h-full w-full object-cover"
               />
             </div>
             <div className="mt-4 grid grid-cols-3 gap-3">
@@ -56,18 +124,24 @@ const ProductPage = () => {
                       : "border-border opacity-60 hover:opacity-100"
                   }`}
                 >
-                  <img src={img} alt={`${product.name} view ${i + 1}`} className="h-full w-full object-cover" />
+                  <img
+                    src={img}
+                    alt={`${product.title} view ${i + 1}`}
+                    className="h-full w-full object-cover"
+                  />
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Details */}
+          {/* Product Details */}
           <div className="flex flex-col justify-center">
             <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--copper))]">
-              {product.category}
+              {product.productType}
             </p>
-            <h1 className="mt-3 font-serif text-4xl text-foreground">{product.name}</h1>
+            <h1 className="mt-3 font-serif text-4xl text-foreground">
+              {product.title}
+            </h1>
             <p className="mt-2 text-2xl text-foreground">${product.price.toFixed(2)}</p>
 
             <div className="mt-4 h-px w-16 bg-[hsl(var(--copper)/0.4)]" />
@@ -95,34 +169,38 @@ const ProductPage = () => {
             </div>
 
             {/* Technical Specs Accordion */}
-            <div className="mt-6 border border-border">
-              <button
-                onClick={() => setSpecsOpen(!specsOpen)}
-                className="flex w-full items-center justify-between px-5 py-4 text-xs font-medium uppercase tracking-[0.15em] text-foreground"
-              >
-                Technical Specifications
-                <ChevronDown
-                  className={`h-4 w-4 text-muted-foreground transition-transform ${specsOpen ? "rotate-180" : ""}`}
-                  strokeWidth={1.5}
-                />
-              </button>
-              {specsOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  className="border-t border-border px-5 py-4"
+            {product.specs && product.specs.length > 0 && (
+              <div className="mt-6 border border-border">
+                <button
+                  onClick={() => setSpecsOpen(!specsOpen)}
+                  className="flex w-full items-center justify-between px-5 py-4 text-xs font-medium uppercase tracking-[0.15em] text-foreground"
                 >
-                  <div className="space-y-3">
-                    {product.specs.map((spec) => (
-                      <div key={spec.label} className="flex justify-between">
-                        <span className="text-xs text-muted-foreground">{spec.label}</span>
-                        <span className="text-xs text-foreground">{spec.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </div>
+                  Technical Specifications
+                  <ChevronDown
+                    className={`h-4 w-4 text-muted-foreground transition-transform ${
+                      specsOpen ? "rotate-180" : ""
+                    }`}
+                    strokeWidth={1.5}
+                  />
+                </button>
+                {specsOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    className="border-t border-border px-5 py-4"
+                  >
+                    <div className="space-y-3">
+                      {product.specs.map((spec) => (
+                        <div key={spec.label} className="flex justify-between">
+                          <span className="text-xs text-muted-foreground">{spec.label}</span>
+                          <span className="text-xs text-foreground">{spec.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
