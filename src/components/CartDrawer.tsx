@@ -1,7 +1,19 @@
 import { X, Minus, Plus } from "lucide-react";
 import { useCart } from "@/context/CartContext";
-import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+
+// Funkcija za generisanje Shopify cart URL-a
+const getShopifyCheckoutUrl = (items: { product: any; quantity: number }[]) => {
+  // Zamijeni sa svojim Shopify domenom
+  const domain = "varden-8392.myshopify.com";
+
+  // format: /cart/{variantId}:{quantity},{variantId2}:{quantity2}
+  const cartItems = items
+    .map((item) => `${item.product.id}:${item.quantity}`)
+    .join(",");
+
+  return `https://${domain}/cart/${cartItems}`;
+};
 
 const CartDrawer = () => {
   const { isOpen, closeCart, items, subtotal, updateQuantity, removeItem } = useCart();
@@ -85,13 +97,15 @@ const CartDrawer = () => {
                   <span className="text-sm text-muted-foreground">Subtotal</span>
                   <span className="text-sm font-medium">${subtotal.toFixed(2)}</span>
                 </div>
-                <Link
-                  to="/checkout"
+                <a
+                  href={getShopifyCheckoutUrl(items)}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   onClick={closeCart}
                   className="block w-full bg-primary py-3 text-center text-xs font-medium uppercase tracking-[0.2em] text-primary-foreground transition-opacity hover:opacity-90"
                 >
                   Checkout
-                </Link>
+                </a>
               </div>
             )}
           </motion.aside>
