@@ -55,14 +55,20 @@ const Index = () => {
 
         console.log("Shopify response:", json);
 
-        const products = json.data.products.edges.map((edge: any) => ({
-          id: edge.node.id,
-          title: edge.node.title,
-          productType: edge.node.productType,
-          image: edge.node.images.edges[0]?.node.url || "/placeholder.jpg",
-          price: edge.node.variants.edges[0]?.node.price.amount || "0",
-          variantId: edge.node.variants.edges[0]?.node.id.split("/").pop(), // <-- važno
-        }));
+        const products = json.data.products.edges
+        .filter((edge: any) => edge.node.variants.edges.length > 0) // samo proizvodi sa varijantama
+        .map((edge: any) => {
+          const variant = edge.node.variants.edges[0]?.node;
+          return {
+            id: edge.node.id,
+            title: edge.node.title,
+            productType: edge.node.productType,
+            image: edge.node.images.edges[0]?.node.url || "/placeholder.jpg",
+            price: parseFloat(variant?.price?.amount || "0"),
+            variantId: variant?.id || "", // **ovo je ključno za CartContext i checkout**
+          };
+        })
+        .filter(p => p.variantId); // samo proizvodi sa varijantom
 
         setShopifyProducts(products);
       } catch (error) {
