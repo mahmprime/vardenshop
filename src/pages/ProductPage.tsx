@@ -37,9 +37,12 @@ const ProductPage = () => {
         const response = await fetch("/api/shopify");
         const json = await response.json();
 
-        // Nađi proizvod po id
+        // Formiraj pun gid
+        const gid = `gid://shopify/Product/${id}`;
+
+        // Nađi proizvod po gid
         const edge = json.data.products.edges.find(
-          (e: any) => encodeURIComponent(e.node.id) === id
+          (e: any) => e.node.id === gid
         );
 
         if (!edge) {
