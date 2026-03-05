@@ -28,28 +28,35 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const closeCart = useCallback(() => setIsOpen(false), []);
 
   const addItem = useCallback((product: Product) => {
-    setItems((prev) => {
-      const existing = prev.find((i) => i.product.id === product.id);
+    if (!product.variantId) return;
+
+    setItems(prev => {
+      const existing = prev.find(i => i.product.variantId === product.variantId);
       if (existing) {
-        return prev.map((i) =>
-          i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i
+        return prev.map(i =>
+          i.product.variantId === product.variantId
+            ? { ...i, quantity: i.quantity + 1 }
+            : i
         );
       }
       return [...prev, { product, quantity: 1 }];
     });
+
     setIsOpen(true);
   }, []);
 
-  const removeItem = useCallback((productId: string) => {
-    setItems((prev) => prev.filter((i) => i.product.id !== productId));
+  const removeItem = useCallback((variantId: string) => {
+    setItems(prev => prev.filter(i => i.product.variantId !== variantId));
   }, []);
 
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
+  const updateQuantity = useCallback((variantId: string, quantity: number) => {
     if (quantity <= 0) {
-      setItems((prev) => prev.filter((i) => i.product.id !== productId));
+      setItems(prev => prev.filter(i => i.product.variantId !== variantId));
     } else {
-      setItems((prev) =>
-        prev.map((i) => (i.product.id === productId ? { ...i, quantity } : i))
+      setItems(prev =>
+        prev.map(i =>
+          i.product.variantId === variantId ? { ...i, quantity } : i
+        )
       );
     }
   }, []);

@@ -61,6 +61,7 @@ const Index = () => {
           productType: edge.node.productType,
           image: edge.node.images.edges[0]?.node.url || "/placeholder.jpg",
           price: edge.node.variants.edges[0]?.node.price.amount || "0",
+          variantId: edge.node.variants.edges[0]?.node.id.split("/").pop(), // <-- važno
         }));
 
         setShopifyProducts(products);
