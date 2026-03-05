@@ -7,7 +7,7 @@ export interface ShopifyProduct {
   price: number;        // u broju, npr. 49.99
   image: string;
   productType?: string;
-  variantId: string;    // numerički variant ID, ključan za Shopify cart
+  variantId: string;    // ključ za Shopify cart
 }
 
 export interface CartItem {
@@ -37,6 +37,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const closeCart = useCallback(() => setIsOpen(false), []);
 
   const addItem = useCallback((product: ShopifyProduct) => {
+    // Provjeri da li proizvod ima variantId
+    if (!product.variantId) {
+      console.warn(`Product ${product.title} nema variantId i neće biti dodan u cart`);
+      return;
+    }
+
     setItems(prev => {
       const existing = prev.find(i => i.product.variantId === product.variantId);
       if (existing) {

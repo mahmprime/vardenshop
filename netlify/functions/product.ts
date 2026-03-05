@@ -14,7 +14,6 @@ export const handler: Handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: "Product ID missing" }) }
   }
 
-  // Shopify Storefront API očekuje ID u formatu "gid://shopify/Product/<num>"
   const query = `
 {
   product(id: "${id}") {
@@ -32,7 +31,7 @@ export const handler: Handler = async (event) => {
     variants(first: 1) {
       edges {
         node {
-          id        # ovo je ključ za frontend / checkout
+          id        # ključ za frontend / checkout
           price {
             amount
           }
@@ -59,7 +58,20 @@ export const handler: Handler = async (event) => {
       return { statusCode: 400, body: JSON.stringify(data) }
     }
 
-    const product = data.data.product
+    const productNode = data.data.product
+    const variant = productNode.variants.edges[0]?.node
+
+    // Mapiramo proizvod da frontend dobije sve što treba
+    const product = {
+      id: productNode.id,
+      title: productNode.title,
+      productType: productNode.productType,
+      description: productNode.description,
+      images: productNode.images.edges.map(e => e.node.url),
+      price: parseFloat(variant?.price.amount || "0"),
+      variantId: variant?.id || "",  // <- OBAVEZNO da cart URL radi
+    }
+
     return { statusCode: 200, body: JSON.stringify(product) }
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: "Shopify request failed", details: err }) }

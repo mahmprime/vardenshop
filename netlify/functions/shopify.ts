@@ -3,7 +3,6 @@ import { Handler } from "@netlify/functions"
 const SHOP = "varden-8392.myshopify.com"
 
 export const handler: Handler = async () => {
-
   const TOKEN = process.env.SHOPIFY_TOKEN
 
   if (!TOKEN) {
@@ -31,7 +30,7 @@ export const handler: Handler = async () => {
         variants(first: 1) {
           edges {
             node {
-              id          # ovo je ID varijante
+              id
               price {
                 amount
               }
@@ -45,7 +44,6 @@ export const handler: Handler = async () => {
 `
 
   try {
-
     const res = await fetch(`https://${SHOP}/api/2026-01/graphql.json`, {
       method: "POST",
       headers: {
@@ -57,17 +55,32 @@ export const handler: Handler = async () => {
 
     const data = await res.json()
 
+    if (data.errors) {
+      return { statusCode: 400, body: JSON.stringify(data) }
+    }
+
+    // Mapiranje proizvoda da frontend uvijek ima variantId i price
+    const products = data.data.products.edges.map((edge: any) => {
+      const node = edge.node
+      const variant = node.variants.edges[0]?.node
+      return {
+        id: node.id,
+        title: node.title,
+        productType: node.productType,
+        image: node.images.edges[0]?.node.url || "",
+        price: parseFloat(variant?.price.amount || "0"),
+        variantId: variant?.id || "",  // OBAVEZNO za cart URL
+      }
+    })
+
     return {
       statusCode: 200,
-      body: JSON.stringify(data)
+      body: JSON.stringify(products)
     }
-
   } catch (err) {
-
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Shopify request failed" })
+      body: JSON.stringify({ error: "Shopify request failed", details: err })
     }
-
   }
 }
