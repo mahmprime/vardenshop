@@ -50,7 +50,7 @@ const Index = () => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const response = await fetch("/.netlify/functions/shopify");
+        const response = await fetch("/api/shopify");
         const json = await response.json();
 
         const products = json.data.products.edges.map((edge: any) => ({

@@ -1,9 +1,17 @@
 import { Handler } from "@netlify/functions"
 
 const SHOP = "varden-8392.myshopify.com"
-const TOKEN = process.env.SHOPIFY_TOKEN
 
 export const handler: Handler = async () => {
+
+  const TOKEN = process.env.SHOPIFY_TOKEN
+
+  if (!TOKEN) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "SHOPIFY_TOKEN missing" })
+    }
+  }
 
   const query = `
   {
@@ -35,19 +43,30 @@ export const handler: Handler = async () => {
   }
   `
 
-  const res = await fetch(`https://${SHOP}/api/2026-01/graphql.json`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Shopify-Storefront-Access-Token": TOKEN
-    },
-    body: JSON.stringify({ query })
-  })
+  try {
 
-  const data = await res.json()
+    const res = await fetch(`https://${SHOP}/api/2026-01/graphql.json`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Storefront-Access-Token": TOKEN
+      },
+      body: JSON.stringify({ query })
+    })
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify(data)
+    const data = await res.json()
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify(data)
+    }
+
+  } catch (err) {
+
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Shopify request failed" })
+    }
+
   }
 }
