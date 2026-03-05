@@ -53,6 +53,8 @@ const Index = () => {
         const response = await fetch("/api/shopify");
         const json = await response.json();
 
+        console.log("Shopify response:", json);
+
         const products = json.data.products.edges.map((edge: any) => ({
           id: edge.node.id,
           title: edge.node.title,
