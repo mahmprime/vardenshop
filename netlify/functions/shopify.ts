@@ -22,18 +22,14 @@ export const handler: Handler = async () => {
         productType
         images(first: 1) {
           edges {
-            node {
-              url
-            }
+            node { url }
           }
         }
         variants(first: 1) {
           edges {
             node {
               id
-              price {
-                amount
-              }
+              price { amount }
             }
           }
         }
@@ -55,21 +51,22 @@ export const handler: Handler = async () => {
 
     const data = await res.json()
 
-    if (data.errors) {
-      return { statusCode: 400, body: JSON.stringify(data) }
+    if (!data.data?.products?.edges) {
+      return { statusCode: 500, body: JSON.stringify({ error: "No products found" }) }
     }
 
-    // Mapiranje proizvoda da frontend uvijek ima variantId i price
+    // Mapiranje proizvoda u jednostavan format
     const products = data.data.products.edges.map((edge: any) => {
       const node = edge.node
       const variant = node.variants.edges[0]?.node
+
       return {
-        id: node.id,
-        title: node.title,
-        productType: node.productType,
+        id: node.id || "",
+        title: node.title || "No title",
+        productType: node.productType || "",
         image: node.images.edges[0]?.node.url || "",
-        price: parseFloat(variant?.price.amount || "0"),
-        variantId: variant?.id || "",  // OBAVEZNO za cart URL
+        price: variant?.price?.amount ? parseFloat(variant.price.amount) : 0,
+        variantId: variant?.id || "", // OBAVEZNO za cart URL
       }
     })
 
@@ -77,6 +74,7 @@ export const handler: Handler = async () => {
       statusCode: 200,
       body: JSON.stringify(products)
     }
+
   } catch (err) {
     return {
       statusCode: 500,

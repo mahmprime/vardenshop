@@ -23,18 +23,14 @@ export const handler: Handler = async (event) => {
     description
     images(first: 5) {
       edges {
-        node {
-          url
-        }
+        node { url }
       }
     }
     variants(first: 1) {
       edges {
         node {
-          id        # ključ za frontend / checkout
-          price {
-            amount
-          }
+          id
+          price { amount }
         }
       }
     }
@@ -54,26 +50,29 @@ export const handler: Handler = async (event) => {
 
     const data = await res.json()
 
-    if (data.errors) {
-      return { statusCode: 400, body: JSON.stringify(data) }
+    if (data.errors || !data.data?.product) {
+      return { statusCode: 400, body: JSON.stringify(data.errors || { error: "Product not found" }) }
     }
 
     const productNode = data.data.product
-    const variant = productNode.variants.edges[0]?.node
+    const variant = productNode.variants?.edges[0]?.node
 
-    // Mapiramo proizvod da frontend dobije sve što treba
+    // Mapiranje proizvoda u uniformni format za frontend
     const product = {
-      id: productNode.id,
-      title: productNode.title,
-      productType: productNode.productType,
-      description: productNode.description,
-      images: productNode.images.edges.map(e => e.node.url),
-      price: parseFloat(variant?.price.amount || "0"),
-      variantId: variant?.id || "",  // <- OBAVEZNO da cart URL radi
+      id: productNode.id || "",
+      title: productNode.title || "No title",
+      productType: productNode.productType || "",
+      description: productNode.description || "",
+      images: productNode.images?.edges?.map((e: any) => e.node.url) || [],
+      price: variant?.price?.amount ? parseFloat(variant.price.amount) : 0,
+      variantId: variant?.id || "", // OBAVEZNO za cart URL
     }
 
     return { statusCode: 200, body: JSON.stringify(product) }
   } catch (err) {
-    return { statusCode: 500, body: JSON.stringify({ error: "Shopify request failed", details: err }) }
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Shopify request failed", details: err })
+    }
   }
 }
