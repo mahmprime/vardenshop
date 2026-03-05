@@ -51,12 +51,24 @@ const ProductPage = () => {
         }
 
         const node = edge.node;
+
+        // Uzmi sve slike iz proizvoda
+        let allImages: string[] = node.images.edges.map((imgEdge: any) => imgEdge.node.url);
+
+        // Takođe dodaj slike iz varijanti (ako postoje)
+        node.variants.edges.forEach((variantEdge: any) => {
+          const variantImage = variantEdge.node.image?.url;
+          if (variantImage && !allImages.includes(variantImage)) {
+            allImages.push(variantImage);
+          }
+        });
+
         const shopifyProduct: ShopifyProduct = {
           id: node.id,
           title: node.title,
           productType: node.productType,
           description: node.description || "",
-          images: node.images.edges.map((imgEdge: any) => imgEdge.node.url),
+          images: allImages,
           price: parseFloat(node.variants.edges[0]?.node.price.amount || "0"),
           specs: node.metafields?.edges?.map((m: any) => ({
             label: m.node.key,
