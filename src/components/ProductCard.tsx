@@ -26,7 +26,7 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
     e.preventDefault();
     playClick();
     setTimeout(() => {
-      navigate(`/product/${product.id}`);
+      navigate(`/product/${product.id.split("/").pop()}`);
     }, 150);
   };
 
