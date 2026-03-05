@@ -1,8 +1,17 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
-import type { Product } from "@/data/products";
+
+// Tip za proizvod iz Shopify-a
+export interface ShopifyProduct {
+  id: string;           // globalni product ID, npr. gid://shopify/Product/7469572980807
+  title: string;
+  price: number;        // u broju, npr. 49.99
+  image: string;
+  productType?: string;
+  variantId: string;    // numerički variant ID, ključan za Shopify cart
+}
 
 export interface CartItem {
-  product: Product;
+  product: ShopifyProduct;
   quantity: number;
 }
 
@@ -11,9 +20,9 @@ interface CartContextType {
   isOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
-  addItem: (product: Product) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addItem: (product: ShopifyProduct) => void;
+  removeItem: (variantId: string) => void;
+  updateQuantity: (variantId: string, quantity: number) => void;
   subtotal: number;
   itemCount: number;
 }
@@ -27,12 +36,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const openCart = useCallback(() => setIsOpen(true), []);
   const closeCart = useCallback(() => setIsOpen(false), []);
 
-  const addItem = useCallback((product: Product) => {
+  const addItem = useCallback((product: ShopifyProduct) => {
     setItems(prev => {
-      const existing = prev.find(i => i.product.id === product.id);
+      const existing = prev.find(i => i.product.variantId === product.variantId);
       if (existing) {
         return prev.map(i =>
-          i.product.id === product.id
+          i.product.variantId === product.variantId
             ? { ...i, quantity: i.quantity + 1 }
             : i
         );
@@ -43,17 +52,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsOpen(true);
   }, []);
 
-  const removeItem = useCallback((productId: string) => {
-    setItems(prev => prev.filter(i => i.product.id !== productId));
+  const removeItem = useCallback((variantId: string) => {
+    setItems(prev => prev.filter(i => i.product.variantId !== variantId));
   }, []);
 
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
+  const updateQuantity = useCallback((variantId: string, quantity: number) => {
     if (quantity <= 0) {
-      setItems(prev => prev.filter(i => i.product.id !== productId));
+      setItems(prev => prev.filter(i => i.product.variantId !== variantId));
     } else {
       setItems(prev =>
         prev.map(i =>
-          i.product.id === productId ? { ...i, quantity } : i
+          i.product.variantId === variantId ? { ...i, quantity } : i
         )
       );
     }

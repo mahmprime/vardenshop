@@ -2,15 +2,13 @@ import { X, Minus, Plus } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { AnimatePresence, motion } from "framer-motion";
 
-// Primjer: "gid://shopify/Product/7469572980807" -> "7469572980807"
+// Shopify checkout URL generator
 const getShopifyCheckoutUrl = (items: { product: any; quantity: number }[]) => {
   const domain = "varden-8392.myshopify.com";
 
+  // Shopify cart format: /cart/{variantId}:{quantity},{variantId}:{quantity}
   const cartItems = items
-    .map((item) => {
-      const numericId = item.product.id.split("/").pop(); // izvlači zadnji dio
-      return `${numericId}:${item.quantity}`;
-    })
+    .map((item) => `${item.product.variantId}:${item.quantity}`)
     .join(",");
 
   return `https://${domain}/cart/${cartItems}`;
@@ -50,28 +48,30 @@ const CartDrawer = () => {
               ) : (
                 <div className="space-y-6">
                   {items.map(({ product, quantity }) => (
-                    <div key={product.id} className="flex gap-4">
+                    <div key={product.variantId} className="flex gap-4">
                       <img
                         src={product.image}
-                        alt={product.name}
+                        alt={product.title}
                         className="h-20 w-20 object-cover bg-card"
                       />
                       <div className="flex flex-1 flex-col justify-between">
                         <div>
-                          <p className="text-sm font-medium text-foreground">{product.name}</p>
-                          <p className="text-xs text-muted-foreground">{product.category}</p>
+                          <p className="text-sm font-medium text-foreground">{product.title}</p>
+                          {product.productType && (
+                            <p className="text-xs text-muted-foreground">{product.productType}</p>
+                          )}
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <button
-                              onClick={() => updateQuantity(product.id, quantity - 1)}
+                              onClick={() => updateQuantity(product.variantId, quantity - 1)}
                               className="text-muted-foreground hover:text-foreground"
                             >
                               <Minus className="h-3 w-3" />
                             </button>
                             <span className="text-xs w-4 text-center">{quantity}</span>
                             <button
-                              onClick={() => updateQuantity(product.id, quantity + 1)}
+                              onClick={() => updateQuantity(product.variantId, quantity + 1)}
                               className="text-muted-foreground hover:text-foreground"
                             >
                               <Plus className="h-3 w-3" />
@@ -81,7 +81,7 @@ const CartDrawer = () => {
                         </div>
                       </div>
                       <button
-                        onClick={() => removeItem(product.id)}
+                        onClick={() => removeItem(product.variantId)}
                         className="self-start text-muted-foreground hover:text-foreground"
                       >
                         <X className="h-3 w-3" />
