@@ -55,17 +55,8 @@ const Index = () => {
 
         console.log("Shopify response:", json);
 
-        const products = json.data.products.edges.map((edge: any) => {
-        const variantNode = edge.node.variants.edges[0]?.node;
-        return {
-          id: edge.node.id,
-          title: edge.node.title,
-          productType: edge.node.productType,
-          image: edge.node.images.edges[0]?.node.url || "/placeholder.jpg",
-          price: variantNode ? parseFloat(variantNode.price.amount || "0") : 0,
-          variantId: variantNode ? variantNode.id.split("/").pop() : null
-        };
-      }).filter(p => p.variantId !== null); // uklanja proizvode bez varijante
+        const products = json; // json je sada niz proizvoda direktno iz shopify.ts
+        
 
         setShopifyProducts(products);
       } catch (error) {
