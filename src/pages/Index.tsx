@@ -46,7 +46,7 @@ const Index = () => {
   const [shopifyProducts, setShopifyProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
@@ -55,8 +55,18 @@ const Index = () => {
 
         console.log("Shopify response:", json);
 
-        const products = json; // json je sada niz proizvoda direktno iz shopify.ts
-        
+        // Pretvori JSON u niz proizvoda koji ProductCard očekuje
+        const products = json.map((p: any) => ({
+          id: p.id,
+          variantId: p.variants?.[0]?.id || p.id.split("/").pop(),
+          title: p.title,
+          price: parseFloat(p.variants?.[0]?.price.amount || "0"),
+          images: [
+            ...(p.images?.edges?.map((imgEdge: any) => imgEdge.node.url) || []),
+            ...(p.variants?.map((v: any) => v.image?.url).filter(Boolean) || []),
+          ],
+          productType: p.productType || "Survival Gear",
+        }));
 
         setShopifyProducts(products);
       } catch (error) {
@@ -117,13 +127,7 @@ const Index = () => {
             {shopifyProducts.map((product, i) => (
               <ProductCard
                 key={product.id}
-                product={{
-                  id: product.id,
-                  name: product.title,
-                  price: parseFloat(product.price),
-                  image: product.image,
-                  category: product.productType || "Survival Gear",
-                }}
+                product={product}
                 index={i}
               />
             ))}

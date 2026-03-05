@@ -35,50 +35,38 @@ const ProductPage = () => {
       setLoading(true);
       try {
         const response = await fetch("/api/shopify");
-        const json = await response.json();
+        const products = await response.json();
 
-        // Formiraj pun gid
-        const gid = `gid://shopify/Product/${id}`;
-
-        // Nađi proizvod po gid
-        const edge = json.data.products.edges.find(
-          (e: any) => e.node.id === gid
+        // Nađi proizvod po id (split ako treba, kao u ProductCard)
+        const prod = products.find(
+          (p: any) => p.id.split("/").pop() === id
         );
 
-        if (!edge) {
+        if (!prod) {
           setProduct(null);
           return;
         }
 
-        const node = edge.node;
-
-        // Uzmi sve slike iz proizvoda
-        let allImages: string[] = node.images.edges.map((imgEdge: any) => imgEdge.node.url);
-
-        // Takođe dodaj slike iz varijanti (ako postoje)
-        node.variants.edges.forEach((variantEdge: any) => {
-          const variantImage = variantEdge.node.image?.url;
-          if (variantImage && !allImages.includes(variantImage)) {
-            allImages.push(variantImage);
-          }
-        });
+        // Kombinujemo glavne slike i varijantne (ako postoje)
+        const allImages = [
+          ...(prod.images || []),
+          ...(prod.variants?.map((v: any) => v.image).filter(Boolean) || [])
+        ];
 
         const shopifyProduct: ShopifyProduct = {
-          id: node.id,
-          title: node.title,
-          productType: node.productType,
-          description: node.description || "",
-          images: allImages,
-          price: parseFloat(node.variants.edges[0]?.node.price.amount || "0"),
-          specs: node.metafields?.edges?.map((m: any) => ({
-            label: m.node.key,
-            value: m.node.value,
-          })),
+          id: prod.id,
+          title: prod.title,
+          productType: prod.productType || "Survival Gear",
+          description: prod.description || "",
+          images: allImages.length > 0 ? allImages : ["/placeholder.png"], // fallback
+          price: parseFloat(prod.variants?.[0]?.price || "0"),
+          specs: prod.specs || [],
         };
 
         setProduct(shopifyProduct);
       } catch (error) {
         console.error("Greška pri fetchovanju proizvoda:", error);
+        setProduct(null);
       } finally {
         setLoading(false);
       }
@@ -157,7 +145,9 @@ const ProductPage = () => {
             <h1 className="mt-3 font-serif text-4xl text-foreground">
               {product.title}
             </h1>
-            <p className="mt-2 text-2xl text-foreground">${product.price.toFixed(2)}</p>
+            <p className="mt-2 text-2xl text-foreground">
+              ${product.price.toFixed(2)}
+            </p>
 
             <div className="mt-4 h-px w-16 bg-[hsl(var(--copper)/0.4)]" />
 

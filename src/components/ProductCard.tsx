@@ -1,15 +1,22 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
-import type { Product } from "@/data/products";
 import { motion } from "framer-motion";
 import useSound from "use-sound";
 
 import hoverSfx from "@/assets/sounds/plug.mp3"; 
 import clickSfx from "@/assets/sounds/futuristic-ui-positive-selection-davies-aguirre-2-2-00-00.mp3";
 
+// Tip proizvoda koji kartica prima (ShopifyProduct kompatibilan)
 interface ProductCardProps {
-  product: Product;
+  product: {
+    id: string;
+    variantId?: string; // obavezno za cart
+    title: string;
+    price: number;
+    images: string[];
+    productType?: string;
+  };
   index: number;
 }
 
@@ -17,16 +24,21 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
   const { addItem } = useCart();
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
-  
+
   const [playHover] = useSound(hoverSfx, { volume: 0.15 });
   const [playClick] = useSound(clickSfx, { volume: 0.4 });
 
   const handleCardClick = (e: React.MouseEvent) => {
+    // Ako je kliknuto na dugme, ne navigiraj
     if ((e.target as HTMLElement).closest('button')) return;
+
     e.preventDefault();
     playClick();
+
+    // Navigacija ka /product/:id (uzmi "čist" ID iz gid)
     setTimeout(() => {
-      navigate(`/product/${product.id.split("/").pop()}`);
+      const cleanId = product.id.includes("/") ? product.id.split("/").pop() : product.id;
+      navigate(`/product/${cleanId}`);
     }, 150);
   };
 
@@ -44,7 +56,6 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
       onClick={handleCardClick}
     >
       <div className="relative aspect-square overflow-hidden bg-card border border-border transition-all duration-500 group-hover:shadow-[0_0_30px_rgba(184,115,51,0.15)]">
-        
         {/* LASER SA REPOM (COPPER TRAIL) */}
         <svg
           className="absolute inset-0 z-10 h-full w-full pointer-events-none"
@@ -58,27 +69,16 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
             width="100"
             height="100"
             fill="none"
-            stroke="hsl(var(--copper))" // Čista bakarna boja, nema bijele
+            stroke="hsl(var(--copper))"
             strokeWidth="2" 
-            // "30 70" stvara dugačak trag (30% obima) koji juri okolo
             strokeDasharray="30 70" 
             strokeLinecap="round" 
-            animate={isHovered ? { 
-              strokeDashoffset: [0, -100], 
-              opacity: 1 
-            } : { 
-              opacity: 0 
-            }}
+            animate={isHovered ? { strokeDashoffset: [0, -100], opacity: 1 } : { opacity: 0 }}
             transition={{
-              strokeDashoffset: { 
-                duration: 1.4, // Brzo i dinamično
-                repeat: Infinity, 
-                ease: "linear" 
-              },
+              strokeDashoffset: { duration: 1.4, repeat: Infinity, ease: "linear" },
               opacity: { duration: 0.3 }
             }}
             style={{ 
-              // VIŠESTRUKI SHADOW KOJI STVARA "TRAIL" EFEKAT
               filter: `
                 drop-shadow(0 0 5px hsl(var(--copper))) 
                 drop-shadow(0 0 15px hsl(var(--copper)/0.8)) 
@@ -89,18 +89,18 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
         </svg>
 
         <img
-          src={product.image}
-          alt={product.name}
+          src={product.images[0]}
+          alt={product.title}
           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
       </div>
-      
+
       <div className="mt-4 space-y-2">
         <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--copper))]">
-          {product.category}
+          {product.productType || "Category"}
         </p>
         <h3 className="font-serif text-lg text-foreground transition-colors duration-300 group-hover:text-[hsl(var(--copper))]">
-          {product.name}
+          {product.title}
         </h3>
         <div className="flex items-center justify-between pt-1">
           <p className="text-sm text-foreground font-medium">${product.price.toFixed(2)}</p>
@@ -108,7 +108,16 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
             onClick={(e) => {
               e.stopPropagation();
               playClick();
-              addItem(product);
+
+              // Dodaj u cart sa variantId
+              addItem({
+                id: product.id,
+                variantId: product.variantId || product.id.split("/").pop(),
+                title: product.title,
+                price: product.price,
+                image: product.images[0],
+                quantity: 1,
+              });
             }}
             className="relative z-20 border border-border px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-foreground transition-all 
               hover:bg-[hsl(var(--copper))] hover:border-[hsl(var(--copper))] hover:text-white"
