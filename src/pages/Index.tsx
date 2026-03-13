@@ -113,7 +113,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen pt-16">
-      {/* Hero */}
+      {/* Herdwadwo */}
       <section
         className="relative flex flex-col items-center justify-center px-6 py-48 text-center bg-cover bg-center"
         style={{ backgroundImage: `url(${backgroundImage})` }}
