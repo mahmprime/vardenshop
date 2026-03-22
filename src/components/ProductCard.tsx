@@ -7,7 +7,6 @@ import useSound from "use-sound";
 import hoverSfx from "@/assets/sounds/plug.mp3"; 
 import clickSfx from "@/assets/sounds/futuristic-ui-positive-selection-davies-aguirre-2-2-00-00.mp3";
 
-// Tip proizvoda koji kartica prima (ShopifyProduct kompatibilan)
 interface ProductCardProps {
   product: {
     id: string;
@@ -30,17 +29,33 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
   const [playClick] = useSound(clickSfx, { volume: 0.4 });
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Ako je kliknuto na dugme, ne navigiraj
-    if ((e.target as HTMLElement).closest('button')) return;
+    if ((e.target as HTMLElement).closest("button")) return;
 
     e.preventDefault();
     playClick();
 
-    // Navigacija ka /product/:id (uzmi "čist" ID iz gid)
     setTimeout(() => {
       const cleanId = product.id.includes("/") ? product.id.split("/").pop() : product.id;
       navigate(`/product/${cleanId}`);
     }, 150);
+  };
+
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    playClick();
+
+    // Dodaj u cart
+    addItem(
+      {
+        id: product.id,
+        variantId: product.variantId || (product.id.includes("/") ? product.id.split("/").pop() : product.id),
+        title: product.title,
+        price: product.price,
+        image: product.images[0],
+        productType: product.productType,
+      },
+      1 // quantity
+    );
   };
 
   return (
@@ -58,17 +73,16 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
     >
       <div className="relative aspect-square overflow-hidden bg-card border border-border transition-all duration-500 group-hover:shadow-[0_0_30px_rgba(184,115,51,0.15)]">
         {product.comparePrice && (
-      <div className="absolute top-3 left-3 z-20 bg-red-500 text-white text-[10px] px-2 py-1 rounded">
-        {Math.round((1 - product.price / product.comparePrice) * 100)}% OFF
-      </div>
-    )}
+          <div className="absolute top-3 left-3 z-20 bg-red-500 text-white text-[10px] px-2 py-1 rounded">
+            {Math.round((1 - product.price / product.comparePrice) * 100)}% OFF
+          </div>
+        )}
 
-        {/* LASER SA REPOM (COPPER TRAIL) */}
         <svg
           className="absolute inset-0 z-10 h-full w-full pointer-events-none"
           viewBox="0 0 100 100"
           preserveAspectRatio="none"
-          style={{ overflow: 'visible' }} 
+          style={{ overflow: "visible" }}
         >
           <motion.rect
             x="0"
@@ -77,15 +91,19 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
             height="100"
             fill="none"
             stroke="hsl(var(--copper))"
-            strokeWidth="2" 
-            strokeDasharray="30 70" 
-            strokeLinecap="round" 
-            animate={isHovered ? { strokeDashoffset: [0, -100], opacity: 1 } : { opacity: 0 }}
+            strokeWidth="2"
+            strokeDasharray="30 70"
+            strokeLinecap="round"
+            animate={
+              isHovered
+                ? { strokeDashoffset: [0, -100], opacity: 1 }
+                : { opacity: 0 }
+            }
             transition={{
               strokeDashoffset: { duration: 1.4, repeat: Infinity, ease: "linear" },
-              opacity: { duration: 0.3 }
+              opacity: { duration: 0.3 },
             }}
-            style={{ 
+            style={{
               filter: `
                 drop-shadow(0 0 5px hsl(var(--copper))) 
                 drop-shadow(0 0 15px hsl(var(--copper)/0.8)) 
@@ -110,11 +128,8 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
           {product.title}
         </h3>
         <div className="flex items-center justify-between pt-1">
-         <div className="flex items-center gap-2">
-            <p className="text-sm text-foreground font-medium">
-              ${product.price.toFixed(2)}
-            </p>
-
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-foreground font-medium">${product.price.toFixed(2)}</p>
             {product.comparePrice && (
               <p className="text-xs text-muted-foreground line-through">
                 ${product.comparePrice.toFixed(2)}
@@ -123,20 +138,7 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
           </div>
 
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              playClick();
-
-              // Dodaj u cart sa variantId
-              addItem({
-                id: product.id,
-                variantId: product.variantId || product.id.split("/").pop(),
-                title: product.title,
-                price: product.price,
-                image: product.images[0],
-                quantity: 1,
-              });
-            }}
+            onClick={handleQuickAdd}
             className="relative z-20 border border-border px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-foreground transition-all 
               hover:bg-[hsl(var(--copper))] hover:border-[hsl(var(--copper))] hover:text-white"
           >

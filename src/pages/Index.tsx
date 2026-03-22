@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import ProductCard from "@/components/ProductCard";
 import Footer from "@/components/Footer";
 import { Star, ChevronDown } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import backgroundImage from "@/assets/unnamed.png";
 
 const reviews = [
@@ -61,59 +61,39 @@ const faqs = [
   }
 ];
 
+const products = [
+  {
+    id: "water-straw",
+    title: "Varden Water Straw",
+    price: 54.95,
+    comparePrice: 89.95,
+    images: ["/products/strawmain.webp"],
+    productType: "Survival Gear",
+  },
+  {
+    id: "solar-pad",
+    title: "Varden Solar Pad",
+    price: 69.95,
+    comparePrice: 109.95,
+    images: ["/products/padmain.webp"],
+    productType: "Survival Gear",
+  },
+  {
+    id: "powerbank",
+    title: "Varden Powerbank",
+    price: 89.95,
+    comparePrice: 149.95,
+    images: ["/products/powerbankmain.webp"],
+    productType: "Survival Gear",
+  }
+];
 
 const Index = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [shopifyProducts, setShopifyProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-  const fetchProducts = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("/.netlify/functions/shopify");
-      const json = await response.json();
-
-      const comparePrices: Record<string, number> = {
-        "7471258632263": 89.95,
-        "7471258665031": 54.95,
-        "7471265218631": 69.95
-      };
-
-      const getCleanId = (gid: string) => {
-        if (gid.includes("/")) return gid.split("/").pop();
-        return gid;
-      };
-
-      const products = json.map((p: any) => {
-        const cleanId = getCleanId(p.id);
-
-        return {
-          id: p.id,
-          variantId: p.variantId,
-          title: p.title,
-          price: p.price,
-          comparePrice: comparePrices[cleanId],
-          images: [p.image],
-          productType: p.productType || "Survival Gear",
-        };
-      });
-
-
-      setShopifyProducts(products);
-    } catch (error) {
-      console.error("Greška pri učitavanju Shopify proizvoda:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchProducts();
-}, []);
 
   return (
     <div className="min-h-screen pt-16">
-      {/* Herdwadwo */}
+      {/* Hero Section */}
       <section
         className="relative flex flex-col items-center justify-center px-6 py-48 text-center bg-cover bg-center"
         style={{ backgroundImage: `url(${backgroundImage})` }}
@@ -150,24 +130,12 @@ const Index = () => {
           </p>
         </div>
 
-        {loading ? (
-          <div className="text-center py-20 text-muted-foreground animate-pulse uppercase tracking-widest text-xs">
-            Loading Gear...
-          </div>
-        ) : (
-          <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3">
-            {shopifyProducts.map((product, i) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                index={i}
-              />
-            ))}
-          </div>
-        )}
+        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3">
+          {products.map((product, i) => (
+            <ProductCard key={product.id} product={product} index={i} />
+          ))}
+        </div>
       </section>
-
-
 
       {/* Reviews Section */}
       <section className="mx-auto max-w-6xl px-6 pb-32">
@@ -199,12 +167,8 @@ const Index = () => {
                 "{review.text}"
               </p>
               <div className="mt-6">
-                <p className="text-xs font-medium text-foreground">
-                  {review.name}
-                </p>
-                <p className="text-[10px] text-muted-foreground">
-                  {review.role}
-                </p>
+                <p className="text-xs font-medium text-foreground">{review.name}</p>
+                <p className="text-[10px] text-muted-foreground">{review.role}</p>
               </div>
             </motion.div>
           ))}
@@ -232,9 +196,7 @@ const Index = () => {
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 className="flex w-full items-center justify-between py-5 text-left"
               >
-                <span className="text-sm font-medium text-foreground pr-4">
-                  {faq.q}
-                </span>
+                <span className="text-sm font-medium text-foreground pr-4">{faq.q}</span>
                 <ChevronDown
                   className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-300 ${
                     openFaq === i ? "rotate-180" : ""
@@ -249,9 +211,7 @@ const Index = () => {
                   transition={{ duration: 0.3 }}
                   className="pb-5"
                 >
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    {faq.a}
-                  </p>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{faq.a}</p>
                 </motion.div>
               )}
             </motion.div>

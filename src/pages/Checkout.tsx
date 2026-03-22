@@ -1,9 +1,26 @@
 import { useCart } from "@/context/CartContext";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import { useState } from "react";
 
 const Checkout = () => {
   const { items, subtotal } = useCart();
+
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [errors, setErrors] = useState<any>({});
+
+  const [form, setForm] = useState({
+    email: "",
+    firstName: "",
+    lastName: "",
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
+    country: "US"
+  });
 
   if (items.length === 0) {
     return (
@@ -11,145 +28,378 @@ const Checkout = () => {
         <p className="text-sm text-muted-foreground">Your cart is empty.</p>
         <Link
           to="/"
-          className="mt-6 border border-border px-6 py-3 text-[10px] uppercase tracking-[0.2em] text-foreground hover:bg-primary hover:text-primary-foreground"
+          className="mt-6 border border-border px-6 py-3 text-[10px] uppercase tracking-[0.2em]"
         >
           Continue Shopping
         </Link>
       </div>
     );
   }
-//sdasdsa
+
   const tax = subtotal * 0.08;
   const total = subtotal + tax;
 
+  const baseInput =
+    "w-full bg-black border text-white px-4 py-3 rounded-md focus:outline-none";
+
+  const handleChange = (e: any) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
+    });
+
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: false });
+    }
+  };
+
+  const validateForm = () => {
+    const required = [
+      "email",
+      "firstName",
+      "lastName",
+      "address",
+      "city",
+      "state",
+      "zip"
+    ];
+
+    let newErrors: any = {};
+
+    required.forEach((field) => {
+      if (!form[field as keyof typeof form]) {
+        newErrors[field] = true;
+      }
+    });
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const createOrderFromServer = async () => {
+    setLoading(true);
+
+    if (!validateForm()) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const paypalItems = items.map((i, idx) => ({
+        name: i.product?.title || `Item ${idx + 1}`,
+        unit_amount: {
+          currency_code: "USD",
+          value: Number(i.product?.price || 0).toFixed(2)
+        },
+        quantity: (i.quantity || 1).toString(),
+        category: "PHYSICAL_GOODS"
+      }));
+
+      const res = await fetch("https://vardensurvival.com/.netlify/functions/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+
+        body: JSON.stringify({
+          subtotal: Number(subtotal.toFixed(2)),
+          tax: Number(tax.toFixed(2)),
+          total: Number(total.toFixed(2)),
+          items: paypalItems,
+
+          shipping: {
+            firstName: form.firstName,
+            lastName: form.lastName,
+            email: form.email,
+            address: form.address,
+            city: form.city,
+            state: form.state,
+            zip: form.zip,
+            country: form.country || "US"
+          }
+        })
+      });
+
+      const data = await res.json();
+      setLoading(false);
+
+      return data.id;
+    } catch (err) {
+      console.error("Failed to create PayPal order:", err);
+      setLoading(false);
+    }
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen pt-16"
+    <PayPalScriptProvider
+      options={{
+        "client-id":
+          import.meta.env.VITE_PAYPAL_CLIENT_ID,
+        currency: "USD"
+      }}
     >
-      <div className="mx-auto max-w-4xl px-6 py-16">
-        <h1 className="font-serif text-3xl text-foreground">Checkout</h1>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen pt-16"
+      >
+        <div className="mx-auto max-w-4xl px-6 py-16">
+          <h1 className="font-serif text-3xl text-foreground">Checkout</h1>
 
-        <div className="mt-12 grid gap-16 lg:grid-cols-5">
-          {/* Form */}
-          <div className="space-y-8 lg:col-span-3">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-4">
-                Contact
-              </p>
-              <input
-                type="email"
-                placeholder="Email address"
-                className="w-full border border-border bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-foreground"
-              />
-            </div>
+          <div className="mt-12 grid gap-16 lg:grid-cols-5">
+            {/* FORM */}
+            <div className="space-y-8 lg:col-span-3">
 
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-4">
-                Shipping Address
-              </p>
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <input
-                    placeholder="First name"
-                    className="w-full border border-border bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-foreground"
-                  />
-                  <input
-                    placeholder="Last name"
-                    className="w-full border border-border bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-foreground"
-                  />
-                </div>
+              {/* CONTACT */}
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.2em] mb-4">
+                  Contact
+                </p>
+
                 <input
-                  placeholder="Address"
-                  className="w-full border border-border bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-foreground"
+                  name="email"
+                  type="email"
+                  placeholder="Email address"
+                  onChange={handleChange}
+                  className={`${baseInput} ${
+                    errors.email ? "border-red-500" : "border-gray-600"
+                  }`}
                 />
-                <div className="grid grid-cols-3 gap-3">
-                  <input
-                    placeholder="City"
-                    className="w-full border border-border bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-foreground"
-                  />
-                  <input
-                    placeholder="State"
-                    className="w-full border border-border bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-foreground"
-                  />
-                  <input
-                    placeholder="ZIP"
-                    className="w-full border border-border bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-foreground"
-                  />
-                </div>
-              </div>
-            </div>
 
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-4">
-                Payment
-              </p>
-              <div className="space-y-3">
-                <input
-                  placeholder="Card number"
-                  className="w-full border border-border bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-foreground"
-                />
-                <div className="grid grid-cols-2 gap-3">
-                  <input
-                    placeholder="MM / YY"
-                    className="w-full border border-border bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-foreground"
-                  />
-                  <input
-                    placeholder="CVC"
-                    className="w-full border border-border bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-foreground"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <button className="w-full bg-primary py-4 text-xs font-medium uppercase tracking-[0.2em] text-primary-foreground transition-opacity hover:opacity-90">
-              Place Order — ${total.toFixed(2)}
-            </button>
-          </div>
-
-          {/* Order Summary */}
-          <div className="lg:col-span-2">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-6">
-              Order Summary
-            </p>
-            <div className="space-y-4">
-              {items.map(({ product, quantity }) => (
-                <div key={product.id} className="flex items-center gap-4">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="h-14 w-14 object-cover bg-card border border-border"
-                  />
-                  <div className="flex-1">
-                    <p className="text-sm text-foreground">{product.name}</p>
-                    <p className="text-xs text-muted-foreground">Qty {quantity}</p>
-                  </div>
-                  <p className="text-sm text-foreground">
-                    ${(product.price * quantity).toFixed(2)}
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1">
+                    Email is required
                   </p>
+                )}
+              </div>
+
+              {/* SHIPPING */}
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.2em] mb-4">
+                  Shipping Address
+                </p>
+
+                <div className="space-y-3">
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <input
+                        name="firstName"
+                        placeholder="First name"
+                        onChange={handleChange}
+                        className={`${baseInput} ${
+                          errors.firstName
+                            ? "border-red-500"
+                            : "border-gray-600"
+                        }`}
+                      />
+                      {errors.firstName && (
+                        <p className="text-red-500 text-xs">
+                          Required
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <input
+                        name="lastName"
+                        placeholder="Last name"
+                        onChange={handleChange}
+                        className={`${baseInput} ${
+                          errors.lastName
+                            ? "border-red-500"
+                            : "border-gray-600"
+                        }`}
+                      />
+                      {errors.lastName && (
+                        <p className="text-red-500 text-xs">
+                          Required
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <input
+                      name="address"
+                      placeholder="Address"
+                      onChange={handleChange}
+                      className={`${baseInput} ${
+                        errors.address
+                          ? "border-red-500"
+                          : "border-gray-600"
+                      }`}
+                    />
+                    {errors.address && (
+                      <p className="text-red-500 text-xs">
+                        Required
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+
+                    <div>
+                      <input
+                        name="city"
+                        placeholder="City"
+                        onChange={handleChange}
+                        className={`${baseInput} ${
+                          errors.city
+                            ? "border-red-500"
+                            : "border-gray-600"
+                        }`}
+                      />
+                      {errors.city && (
+                        <p className="text-red-500 text-xs">
+                          Required
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <input
+                        name="state"
+                        placeholder="State"
+                        onChange={handleChange}
+                        className={`${baseInput} ${
+                          errors.state
+                            ? "border-red-500"
+                            : "border-gray-600"
+                        }`}
+                      />
+                      {errors.state && (
+                        <p className="text-red-500 text-xs">
+                          Required
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <input
+                        name="zip"
+                        placeholder="ZIP"
+                        onChange={handleChange}
+                        className={`${baseInput} ${
+                          errors.zip
+                            ? "border-red-500"
+                            : "border-gray-600"
+                        }`}
+                      />
+                      {errors.zip && (
+                        <p className="text-red-500 text-xs">
+                          Required
+                        </p>
+                      )}
+                    </div>
+
+                  </div>
                 </div>
-              ))}
+              </div>
+
+              {/* PAYPAL */}
+              <div className="mt-6">
+                <PayPalButtons
+                  style={{
+                    layout: "vertical",
+                    color: "blue",
+                    shape: "rect",
+                    label: "paypal"
+                  }}
+
+                  createOrder={createOrderFromServer}
+
+                  onApprove={async (data, actions) => {
+                    await actions.order!.capture();
+                    setSuccess(true);
+                  }}
+
+                  onError={(err) => {
+                    console.error("PayPal Checkout Error:", err);
+                  }}
+
+                  disabled={loading}
+                />
+              </div>
+
             </div>
-            <div className="mt-8 space-y-3 border-t border-border pt-6">
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+
+            {/* ORDER SUMMARY */}
+            <div className="lg:col-span-2">
+              <p className="text-[10px] uppercase tracking-[0.2em] mb-6">
+                Order Summary
+              </p>
+
+              <div className="space-y-4">
+                {items.map(({ product, quantity }) => (
+                  <div key={product.id} className="flex items-center gap-4">
+                    <img
+                      src={product.image}
+                      className="h-14 w-14 object-cover border"
+                    />
+
+                    <div className="flex-1">
+                      <p>{product.name}</p>
+                      <p className="text-xs">
+                        Qty {quantity}
+                      </p>
+                    </div>
+
+                    <p>
+                      ${(product.price * quantity).toFixed(2)}
+                    </p>
+                  </div>
+                ))}
               </div>
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Tax</span>
-                <span>${tax.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm font-medium text-foreground border-t border-border pt-3">
-                <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+
+              <div className="mt-8 space-y-3 border-t pt-6">
+
+                <div className="flex justify-between text-xs">
+                  <span>Subtotal</span>
+                  <span>${subtotal.toFixed(2)}</span>
+                </div>
+
+                <div className="flex justify-between text-xs">
+                  <span>Tax</span>
+                  <span>${tax.toFixed(2)}</span>
+                </div>
+
+                <div className="flex justify-between text-sm border-t pt-3">
+                  <span>Total</span>
+                  <span>${total.toFixed(2)}</span>
+                </div>
+
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </motion.div>
+
+        {/* SUCCESS MODAL */}
+        {success && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+
+            <div className="bg-black border border-gray-600 p-8 rounded-lg text-center max-w-md">
+
+              <h2 className="text-2xl mb-4">
+                Payment Successful 🎉
+              </h2>
+
+              <p className="text-sm text-gray-400 mb-6">
+                Thank you for your purchase. Your order has been received.
+              </p>
+
+              <Link
+                to="/"
+                className="border border-gray-500 px-6 py-3 text-xs uppercase tracking-widest"
+              >
+                Continue Shopping
+              </Link>
+
+            </div>
+
+          </div>
+        )}
+      </motion.div>
+    </PayPalScriptProvider>
   );
 };
 

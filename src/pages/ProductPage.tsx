@@ -9,11 +9,12 @@ interface ProductSpec {
   value: string;
 }
 
-interface ShopifyProduct {
+interface Product {
   id: string;
   variantId: string;
   title: string;
   productType: string;
+  description?: string;
   longDescription?: string;
   image: string;
   images: string[];
@@ -23,15 +24,39 @@ interface ShopifyProduct {
   video?: string;
 }
 
-const productDetails: Record<string, Partial<ShopifyProduct>> = {
-  "7471258632263": {
+const products = [
+  {
+    id: "powerbank",
+    title: "Varden Powerbank",
+    price: 89.95,
+    productType: "Survival Gear",
+    image: "/products/powerbankmain.webp"
+  },
+  {
+    id: "solar-pad",
+    title: "Varden Solar Pad",
+    price: 69.95,
+    productType: "Survival Gear",
+    image: "/products/padmain.webp"
+  },
+  {
+    id: "water-straw",
+    title: "Varden Water Straw",
+    price: 54.95,
+    productType: "Survival Gear",
+    image: "/products/strawmain.webp"
+  }
+];
+
+const productDetails: Record<string, Partial<Product>> = {
+  "powerbank": {
     comparePrice: 89.95,
     description: "Professional-grade survival knife designed for extreme conditions.",
 
     longDescription: `
       <p>Designed for adventurers who refuse to compromise, the VARDEN Power Bank is more than just a battery—it is an essential life-line for the modern explorer. Whether you are trekking through remote mountain ranges, setting up camp in the deep woods, or facing unexpected power outages during emergency situations, this rugged power solution ensures that your communication and navigation devices never go dark. Engineered for the toughest environments, it combines high-capacity storage with the ultimate reliability of renewable energy, making it a cornerstone of any professional survival kit or weekend camping setup.</p>
 
-<img src="/products/powerbank1.png" class="my-10 w-70% rounded-lg"/>
+<img src="/products/powerbank1.webp" class="my-10 w-70% rounded-lg"/>
 
 <div class="my-6">
   <h3 class="text-xl font-bold mb-4">Key Features:</h3>
@@ -51,7 +76,7 @@ const productDetails: Record<string, Partial<ShopifyProduct>> = {
   </ul>
 </div>
 
-<img src="/products/powerbank2.png" class="my-10 w-70% rounded-lg"/>
+<img src="/products/powerbank2.webp" class="my-10 w-70% rounded-lg"/>
 
 <div class="my-6">
   <h3 class="text-xl font-bold mb-2">Advanced Technical Specifications and Operation:</h3>
@@ -65,8 +90,9 @@ const productDetails: Record<string, Partial<ShopifyProduct>> = {
     `,
 
     images: [
-      "/products/powerbank1.png",
-      "/products/powerbank2.png"
+      "/products/powerbankmain.webp",
+      "/products/powerbank1.webp",
+      "/products/powerbank2.webp"
     ],
 
     
@@ -78,14 +104,14 @@ const productDetails: Record<string, Partial<ShopifyProduct>> = {
     ]
   },
 
-  "7471258665031": {
+  "solar-pad": {
     comparePrice: 54.95,
     description: "Professional-grade survival knife designed for extreme conditions.",
 
     longDescription: `
       <p>Designed for adventurers who refuse to compromise, the VARDEN Solar Pad is more than just a charging plate—it is an essential energy source for the modern explorer. Whether you are trekking through remote mountain ranges, setting up a base camp in the deep woods, or requiring a sustainable backup for your monitoring devices, this ultra-slim solar solution ensures that your essential electronics stay powered by the sun. Engineered for maximum portability and efficiency, it brings the ultimate reliability of renewable energy to any professional survival kit or outdoor setup.</p>
 
-<img src="/products/solar1.png" class="my-10 w-70% rounded-lg"/>
+<img src="/products/solar1.webp" class="my-10 w-70% rounded-lg"/>
 
 <div class="my-6">
   <h3 class="text-xl font-bold mb-4">Key Features:</h3>
@@ -105,7 +131,7 @@ const productDetails: Record<string, Partial<ShopifyProduct>> = {
   </ul>
 </div>
 
-<img src="/products/solar2.png" class="my-10 w-70% rounded-lg"/>
+<img src="/products/solar2.webp" class="my-10 w-70% rounded-lg"/>
 
 <div class="my-6">
   <h3 class="text-xl font-bold mb-2">Advanced Technical Specifications and Operation:</h3>
@@ -119,8 +145,9 @@ const productDetails: Record<string, Partial<ShopifyProduct>> = {
     `,
 
     images: [
-      "/products/solar1.png",
-      "/products/solar2.png"
+      "/products/padmain.webp",
+      "/products/solar1.webp",
+      "/products/solar2.webp"
     ],
 
     
@@ -132,14 +159,14 @@ const productDetails: Record<string, Partial<ShopifyProduct>> = {
     ]
   },
 
-  "7471265218631": {
+  "water-straw": {
     comparePrice: 69.95,
     description: "Professional-grade survival knife designed for extreme conditions.",
 
     longDescription: `
       <p>Designed for adventurers who refuse to compromise, the VARDEN H1 Filter is more than just a straw—it is an essential life-line for the modern explorer. Whether you are trekking through remote mountain ranges, setting up camp in the deep woods, or facing unexpected water shortages during emergency situations, this high-performance purification tool ensures that any surface water source becomes safe to drink. Engineered for the toughest environments, it combines medical-grade filtration precision with the ultimate reliability of chemical-free technology, making it a cornerstone of any professional survival kit or outdoor travel gear.</p>
 
-<img src="/products/straw1.png" class="my-10 w-70% rounded-lg"/>
+<img src="/products/straw1.webp" class="my-10 w-70% rounded-lg"/>
 
 <div class="my-6">
   <h3 class="text-xl font-bold mb-4">Key Features:</h3>
@@ -159,7 +186,7 @@ const productDetails: Record<string, Partial<ShopifyProduct>> = {
   </ul>
 </div>
 
-<img src="/products/straw2.png" class="my-10 w-70% rounded-lg"/>
+<img src="/products/straw2.webp" class="my-10 w-70% rounded-lg"/>
 
 <div class="my-6">
   <h3 class="text-xl font-bold mb-2">Advanced Technical Specifications and Performance:</h3>
@@ -173,8 +200,9 @@ const productDetails: Record<string, Partial<ShopifyProduct>> = {
     `,
 
     images: [
-      "/products/straw1.png",
-      "/products/straw2.png"
+      "/products/strawmain.webp",
+      "/products/straw1.webp",
+      "/products/straw2.webp"
     ],
 
     
@@ -186,86 +214,47 @@ const productDetails: Record<string, Partial<ShopifyProduct>> = {
     ]
   },
 };
-
 const ProductPage = () => {
   const { id } = useParams<{ id: string }>();
-  const [product, setProduct] = useState<ShopifyProduct | null>(null);
+
+  const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [specsOpen, setSpecsOpen] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
 
   const { addItem } = useCart();
 
-  
   useEffect(() => {
     if (!id) return;
 
-    const getCleanId = (gidOrId: string | number) => {
-      if (!gidOrId) return "";
-      const str = String(gidOrId);
-      if (str.includes("/")) return str.split("/").pop()!;
-      return str;
+    const prod = products.find((p) => p.id === id);
+
+    if (!prod) {
+      setProduct(null);
+      setLoading(false);
+      return;
+    }
+
+    const manual = productDetails[id] || {};
+
+    const finalProduct: Product = {
+      id: prod.id,
+      variantId: prod.id,
+      title: prod.title,
+      productType: prod.productType,
+      description: manual.description,
+      longDescription: manual.longDescription,
+      image: prod.image,
+      images: manual.images || [prod.image],
+      price: prod.price,
+      comparePrice: manual.comparePrice,
+      video: manual.video,
+      specs: manual.specs || []
     };
 
-    const fetchProduct = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch("/api/shopify");
-        const products = await response.json();
-
-        // DEBUG log
-        console.log("ID iz URL-a:", id);
-        console.log("Svi proizvodi:", products);
-        console.log(
-          "Čisti ID-evi proizvoda:",
-          products.map((p: any) => getCleanId(p.id))
-        );
-
-        const prod = products.find((p: any) => getCleanId(p.id) === id);
-
-        if (!prod) {
-          console.warn("Proizvod nije pronađen. ID iz URL-a:", id);
-          setProduct(null);
-          return;
-        }
-
-        console.log("Pronađen proizvod:", prod);
-
-        const cleanId = getCleanId(prod.id);
-
-        const manualData = productDetails[cleanId] || {};
-
-        const shopifyProduct: ShopifyProduct = {
-        id: prod.id,
-        variantId: prod.variantId,
-        title: prod.title,
-        productType: prod.productType || "Survival Gear",
-        description: manualData.description || "",
-        longDescription: manualData.longDescription,
-        image: prod.image || "/placeholder.png",
-        images: [
-          prod.image || "/placeholder.png",
-          ...(manualData.images || [])
-        ],
-        price: prod.price || 0,
-        comparePrice: manualData.comparePrice,
-        video: manualData.video,
-        specs: manualData.specs || [],
-      };
-
-        
-        setActiveImage(0);
-
-        setProduct(shopifyProduct);
-      } catch (error) {
-        console.error("Greška pri fetchovanju proizvoda:", error);
-        setProduct(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProduct();
+    setProduct(finalProduct);
+    setActiveImage(0);
+    setLoading(false);
   }, [id]);
 
   if (loading) {
@@ -300,29 +289,31 @@ const ProductPage = () => {
         </Link>
 
         <div className="mt-12 grid gap-16 lg:grid-cols-2">
-          {/* Image Gallery */}
+
+          {/* Images */}
           <div>
-            <div className="aspect-square overflow-hidden border border-border bg-card shadow-[var(--shadow-copper)]">
+            <div className="aspect-square overflow-hidden border border-border bg-card">
               <img
                 src={product.images[activeImage]}
                 alt={product.title}
                 className="h-full w-full object-cover"
               />
             </div>
+
             <div className="mt-4 grid grid-cols-3 gap-3">
               {product.images.map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setActiveImage(i)}
-                  className={`aspect-square overflow-hidden border bg-card transition-all ${
+                  className={`aspect-square border ${
                     activeImage === i
-                      ? "border-[hsl(var(--copper))] shadow-[0_0_12px_-3px_hsl(var(--copper)/0.4)]"
+                      ? "border-[hsl(var(--copper))]"
                       : "border-border opacity-60 hover:opacity-100"
                   }`}
                 >
                   <img
                     src={img}
-                    alt={`${product.title} view ${i + 1}`}
+                    alt=""
                     className="h-full w-full object-cover"
                   />
                 </button>
@@ -330,131 +321,106 @@ const ProductPage = () => {
             </div>
           </div>
 
-          {/* Product Details */}
+          {/* Details */}
           <div className="flex flex-col justify-center">
             <p className="text-[10px] uppercase tracking-[0.2em] text-[hsl(var(--copper))]">
               {product.productType}
             </p>
+
             <h1 className="mt-3 font-serif text-4xl text-foreground">
               {product.title}
             </h1>
+
             <div className="mt-3 flex items-center gap-3">
               <span className="text-3xl font-semibold text-foreground">
                 ${product.price.toFixed(2)}
               </span>
 
               {product.comparePrice && (
-                <span className="text-lg text-muted-foreground line-through">
-                  ${product.comparePrice.toFixed(2)}
-                </span>
-              )}
+                <>
+                  <span className="text-lg line-through text-muted-foreground">
+                    ${product.comparePrice.toFixed(2)}
+                  </span>
 
-              {product.comparePrice && (
-                <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">
-                  SALE
-                </span>
+                  <span className="bg-red-500 text-white text-xs px-2 py-1 rounded">
+                    SALE
+                  </span>
+                </>
               )}
             </div>
 
-            <div className="mt-4 h-px w-16 bg-[hsl(var(--copper)/0.4)]" />
-
-            <p className="mt-8 text-sm leading-relaxed text-muted-foreground">
+            <p className="mt-8 text-sm text-muted-foreground">
               {product.description}
             </p>
 
             <button
               onClick={() => addItem(product)}
-              className="mt-10 w-full bg-primary py-4 text-xs font-medium uppercase tracking-[0.2em] text-primary-foreground transition-opacity hover:opacity-90"
+              className="mt-10 w-full bg-primary py-4 text-xs font-medium uppercase tracking-[0.2em] text-primary-foreground hover:opacity-90"
             >
               Add to Cart
             </button>
 
-            {/* Premium Guarantee */}
+            {/* Guarantee */}
             <div className="mt-8 flex items-center gap-3 border border-border px-5 py-4">
-              <Shield className="h-4 w-4 text-[hsl(var(--copper))]" strokeWidth={1.5} />
+              <Shield className="h-4 w-4 text-[hsl(var(--copper))]" />
               <div>
-                <p className="text-xs font-medium text-foreground">Premium Guarantee</p>
+                <p className="text-xs font-medium text-foreground">
+                  Premium Guarantee
+                </p>
                 <p className="text-[10px] text-muted-foreground">
-                  Lifetime warranty · Free returns · Precision-tested
+                  Lifetime warranty · Free returns
                 </p>
               </div>
             </div>
 
-            {/* Technical Specs Accordion */}
+            {/* Specs */}
             {product.specs && product.specs.length > 0 && (
               <div className="mt-6 border border-border">
                 <button
                   onClick={() => setSpecsOpen(!specsOpen)}
-                  className="flex w-full items-center justify-between px-5 py-4 text-xs font-medium uppercase tracking-[0.15em] text-foreground"
+                  className="flex w-full items-center justify-between px-5 py-4 text-xs uppercase"
                 >
                   Technical Specifications
                   <ChevronDown
-                    className={`h-4 w-4 text-muted-foreground transition-transform ${
+                    className={`h-4 w-4 transition-transform ${
                       specsOpen ? "rotate-180" : ""
                     }`}
-                    strokeWidth={1.5}
                   />
                 </button>
+
                 {specsOpen && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    className="border-t border-border px-5 py-4"
-                  >
-                    <div className="space-y-3">
-                      {product.specs.map((spec) => (
-                        <div key={spec.label} className="flex justify-between">
-                          <span className="text-xs text-muted-foreground">{spec.label}</span>
-                          <span className="text-xs text-foreground">{spec.value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
+                  <div className="border-t border-border px-5 py-4 space-y-3">
+                    {product.specs.map((spec) => (
+                      <div
+                        key={spec.label}
+                        className="flex justify-between text-xs"
+                      >
+                        <span className="text-muted-foreground">
+                          {spec.label}
+                        </span>
+                        <span>{spec.value}</span>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             )}
           </div>
         </div>
+
+        {/* Long description */}
         {product.longDescription && (
-        <div className="mt-24 mx-auto max-w-4xl px-6">
-          
-          <h2 className="font-serif text-3xl mb-8 text-center">
-            Product Details
-          </h2>
+          <div className="mt-24 mx-auto max-w-4xl">
+            <h2 className="font-serif text-3xl mb-8 text-center">
+              Product Details
+            </h2>
 
-          <div
-            className="prose prose-invert max-w-none text-muted-foreground"
-            dangerouslySetInnerHTML={{ __html: product.longDescription }}
-          />
-          {product.video && (
-          <div className="mt-24">
-            <div className="mx-auto max-w-6xl px-6">
-
-              <h2 className="font-serif text-3xl text-center mb-10">
-                See It In Action
-              </h2>
-
-              <div className="overflow-hidden border border-border shadow-[var(--shadow-copper)]">
-                <video
-                  className="w-full"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                >
-                  <source src={product.video} type="video/mp4" />
-                </video>
-              </div>
-
-            </div>
+            <div
+              className="prose prose-invert max-w-none text-muted-foreground"
+              dangerouslySetInnerHTML={{ __html: product.longDescription }}
+            />
           </div>
         )}
-          
-
-        </div>
-        
-        
-      )}
       </div>
     </motion.div>
   );

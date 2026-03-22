@@ -1,6 +1,7 @@
 import { X, Minus, Plus } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { AnimatePresence, motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 // Shopify checkout URL generator
 const getCleanVariantId = (gid: string) => {
@@ -102,17 +103,17 @@ const CartDrawer = () => {
                   <span className="text-sm text-muted-foreground">Subtotal</span>
                   <span className="text-sm font-medium">${subtotal.toFixed(2)}</span>
                 </div>
-                <a
-                  href={getShopifyCheckoutUrl(items)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={closeCart}
+                {/* Checkout dugme vodi na tvoj checkout page */}
+                <Link
+                  to="/checkout"
+                  onClick={closeCart} // zatvori drawer kada se ide na checkout
                   className="block w-full bg-primary py-3 text-center text-xs font-medium uppercase tracking-[0.2em] text-primary-foreground transition-opacity hover:opacity-90"
                 >
                   Checkout
-                </a>
+                </Link>
               </div>
             )}
+
           </motion.aside>
         </>
       )}
