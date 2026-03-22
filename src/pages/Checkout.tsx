@@ -9,18 +9,7 @@ const Checkout = () => {
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [errors, setErrors] = useState<any>({});
 
-  const [form, setForm] = useState({
-    email: "",
-    firstName: "",
-    lastName: "",
-    address: "",
-    city: "",
-    state: "",
-    zip: "",
-    country: "US"
-  });
 
   if (items.length === 0) {
     return (
@@ -42,48 +31,10 @@ const Checkout = () => {
   const baseInput =
     "w-full bg-black border text-white px-4 py-3 rounded-md focus:outline-none";
 
-  const handleChange = (e: any) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
 
-    if (errors[e.target.name]) {
-      setErrors({ ...errors, [e.target.name]: false });
-    }
-  };
-
-  const validateForm = () => {
-    const required = [
-      "email",
-      "firstName",
-      "lastName",
-      "address",
-      "city",
-      "state",
-      "zip"
-    ];
-
-    let newErrors: any = {};
-
-    required.forEach((field) => {
-      if (!form[field as keyof typeof form]) {
-        newErrors[field] = true;
-      }
-    });
-
-    setErrors(newErrors);
-
-    return Object.keys(newErrors).length === 0;
-  };
 
   const createOrderFromServer = async () => {
     setLoading(true);
-
-    if (!validateForm()) {
-      setLoading(false);
-      return;
-    }
 
     try {
       const paypalItems = items.map((i, idx) => ({
@@ -99,23 +50,12 @@ const Checkout = () => {
       const res = await fetch("https://vardensurvival.com/.netlify/functions/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-
         body: JSON.stringify({
           subtotal: Number(subtotal.toFixed(2)),
           tax: Number(tax.toFixed(2)),
           total: Number(total.toFixed(2)),
-          items: paypalItems,
-
-          shipping: {
-            firstName: form.firstName,
-            lastName: form.lastName,
-            email: form.email,
-            address: form.address,
-            city: form.city,
-            state: form.state,
-            zip: form.zip,
-            country: form.country || "US"
-          }
+          items: paypalItems
+          // shipping više nije potrebno
         })
       });
 
@@ -149,152 +89,7 @@ const Checkout = () => {
             {/* FORM */}
             <div className="space-y-8 lg:col-span-3">
 
-              {/* CONTACT */}
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.2em] mb-4">
-                  Contact
-                </p>
-
-                <input
-                  name="email"
-                  type="email"
-                  placeholder="Email address"
-                  onChange={handleChange}
-                  className={`${baseInput} ${
-                    errors.email ? "border-red-500" : "border-gray-600"
-                  }`}
-                />
-
-                {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">
-                    Email is required
-                  </p>
-                )}
-              </div>
-
-              {/* SHIPPING */}
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.2em] mb-4">
-                  Shipping Address
-                </p>
-
-                <div className="space-y-3">
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <input
-                        name="firstName"
-                        placeholder="First name"
-                        onChange={handleChange}
-                        className={`${baseInput} ${
-                          errors.firstName
-                            ? "border-red-500"
-                            : "border-gray-600"
-                        }`}
-                      />
-                      {errors.firstName && (
-                        <p className="text-red-500 text-xs">
-                          Required
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <input
-                        name="lastName"
-                        placeholder="Last name"
-                        onChange={handleChange}
-                        className={`${baseInput} ${
-                          errors.lastName
-                            ? "border-red-500"
-                            : "border-gray-600"
-                        }`}
-                      />
-                      {errors.lastName && (
-                        <p className="text-red-500 text-xs">
-                          Required
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <input
-                      name="address"
-                      placeholder="Address"
-                      onChange={handleChange}
-                      className={`${baseInput} ${
-                        errors.address
-                          ? "border-red-500"
-                          : "border-gray-600"
-                      }`}
-                    />
-                    {errors.address && (
-                      <p className="text-red-500 text-xs">
-                        Required
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3">
-
-                    <div>
-                      <input
-                        name="city"
-                        placeholder="City"
-                        onChange={handleChange}
-                        className={`${baseInput} ${
-                          errors.city
-                            ? "border-red-500"
-                            : "border-gray-600"
-                        }`}
-                      />
-                      {errors.city && (
-                        <p className="text-red-500 text-xs">
-                          Required
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <input
-                        name="state"
-                        placeholder="State"
-                        onChange={handleChange}
-                        className={`${baseInput} ${
-                          errors.state
-                            ? "border-red-500"
-                            : "border-gray-600"
-                        }`}
-                      />
-                      {errors.state && (
-                        <p className="text-red-500 text-xs">
-                          Required
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <input
-                        name="zip"
-                        placeholder="ZIP"
-                        onChange={handleChange}
-                        className={`${baseInput} ${
-                          errors.zip
-                            ? "border-red-500"
-                            : "border-gray-600"
-                        }`}
-                      />
-                      {errors.zip && (
-                        <p className="text-red-500 text-xs">
-                          Required
-                        </p>
-                      )}
-                    </div>
-
-                  </div>
-                </div>
-              </div>
+             
 
               {/* PAYPAL */}
               <div className="mt-6">
