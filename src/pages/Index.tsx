@@ -65,7 +65,7 @@ const products = [
   {
     id: "water-straw",
     title: "Varden Water Straw",
-    price: 54.95,
+    price: 1,
     comparePrice: 89.95,
     images: ["/products/strawmain.webp"],
     productType: "Survival Gear",
